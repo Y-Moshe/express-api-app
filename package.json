@@ -1,0 +1,25 @@
+{
+  "name": "express-api-app",
+  "version": "1.0.0",
+  "description": "a Simple ready-to-use files structure with Express.js for RESTful API.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Y-Moshe/express-api-app.git"
+  },
+  "author": "Y-Moshe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Y-Moshe/express-api-app/issues"
+  },
+  "homepage": "https://github.com/Y-Moshe/express-api-app#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "nodemon": "^1.19.1"
+  }
+}
