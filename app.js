@@ -1,10 +1,22 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require('express'),
+      mongoose = require('mongoose'),
+      bodyParser = require('body-parser'),
+      passport = require('passport'),
+      LocalStrategy = require('passport-local').Strategy;
 
-const exampleRoute = require('./routes/example');
+const usersRoutes = require('./routes/users');
+
+const User = require('./models/user');
 
 const app = express();
-const apiURI = '/api/';
+
+mongoose.connect(process.env.MONGO_CONNECTION, {
+  useNewUrlParser: true
+}).then(() => {
+  console.log('Connected to Database');
+}).catch(error => {
+  console.error('Error: ', error);
+});
 
 app.use(bodyParser.json());
 app.use((req, res, next) => {
@@ -14,6 +26,27 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(apiURI.concat('example'), exampleRoute);
+passport.use(new LocalStrategy({
+  usernameField: 'email',
+  passwordField: 'password'
+}, (username, password, done) => {
+  User.findOne({ email: username, passport: passport }).then(user => {
+    if (!user) {
+      return done(null, false, { message: 'Incorrect email or password' });
+    }
+    
+    if (user.password !== password) {
+      return done(null, false, { message: 'Incorrect email or password' });
+    }
+
+  }).catch(error => {
+    console.log(error);
+    done(error);
+  })
+}));
+
+app.use(passport.initialize());
+
+app.use('/api/users', usersRoutes);
 
 module.exports = app;

@@ -1,5 +1,6 @@
 {
   "env": {
-    "UNKNOWN_ERROR_MESSAGE": "An unknown error has occurred, try again later on."
+    "UNKNOWN_ERROR_MSG": "An unknown error has occurred, try again later on.",
+    "MONGO_CONNECTION": "mongodb://localhost:27017/tests"
   }
 }
