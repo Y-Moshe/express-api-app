@@ -1,10 +1,19 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
-const exampleRoute = require('./routes/example');
+const examplesRoutes = require('./routes/examples');
 
 const app = express();
-const apiURI = '/api/';
+
+mongoose.connect(process.env.MONGO_CONNECTION, {
+  useNewUrlParser: true
+}).then(() => {
+  console.log('Connected to Database!');
+}).catch(error => {
+  console.error('Could not connect to Database! Error:');
+  console.log(error);
+});
 
 app.use(bodyParser.json());
 app.use((req, res, next) => {
@@ -14,6 +23,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(apiURI.concat('example'), exampleRoute);
+app.use('/api/examples', examplesRoutes);
 
 module.exports = app;
