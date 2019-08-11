@@ -30,7 +30,7 @@ passport.use(new LocalStrategy({
   usernameField: 'email',
   passwordField: 'password'
 }, (username, password, done) => {
-  User.findOne({ email: username, passport: passport }).then(user => {
+  User.findOne({ email: username, password: password }).then(user => {
     if (!user) {
       return done(null, false, { message: 'Incorrect email or password' });
     }
@@ -39,13 +39,31 @@ passport.use(new LocalStrategy({
       return done(null, false, { message: 'Incorrect email or password' });
     }
 
+    done(null, user);
   }).catch(error => {
     console.log(error);
     done(error);
   })
 }));
 
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+
+passport.deserializeUser((id, done) => {
+  User.findOne({ _id: id }).then(user => {
+    if (!user) {
+      return done(new Error('Could not found the user!!'));
+    }
+
+    done(null, user);
+  }).catch(error => {
+    done(error, false);
+  });
+});
+
 app.use(passport.initialize());
+// app.use(passport.session()); - required test
 
 app.use('/api/users', usersRoutes);
 
