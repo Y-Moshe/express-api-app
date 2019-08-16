@@ -9,6 +9,6 @@ router.post('', usersController.createUser);
 
 router.post('/login', passport.authenticate('local'), usersController.loginUser);
 
-router.post('/logout', passport.authenticate('local'), usersController.logoutUser);
+router.get('/logout', passport.authenticate('local'), usersController.logoutUser);
 
 module.exports = router;

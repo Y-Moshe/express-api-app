@@ -2,48 +2,49 @@ const express = require('express'),
       mongoose = require('mongoose'),
       bodyParser = require('body-parser'),
       passport = require('passport'),
-      LocalStrategy = require('passport-local').Strategy;
+      LocalStrategy = require('passport-local').Strategy,
+      bcrypt = require('bcryptjs');
 
 const usersRoutes = require('./routes/users');
-
 const User = require('./models/user');
 
+const RESPONSE_DELAY = 750; // In milliseconds!
 const app = express();
 
+/**
+ * Mongoose Connection and configuration.
+ */
 mongoose.connect(process.env.MONGO_CONNECTION, {
-  useNewUrlParser: true
-}).then(() => {
-  console.log('Connected to Database');
-}).catch(error => {
-  console.error('Error: ', error);
+    useNewUrlParser: true,
+    useCreateIndex: true
+  }).then(() => {
+    console.log('Connected to Database');
+  }).catch(error => {
+    console.error('Error: ', error);
 });
 
-app.use(bodyParser.json());
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  next();
-});
-
-passport.use(new LocalStrategy({
+/**
+ * Passport Configuration.
+ */
+// Local Strategy
+passport.use('local', new LocalStrategy({
   usernameField: 'email',
   passwordField: 'password'
 }, (username, password, done) => {
-  User.findOne({ email: username, password: password }).then(user => {
+  User.findOne({ email: username }).then(user => {
     if (!user) {
-      return done(null, false, { message: 'Incorrect email or password' });
+      return done(null, false);
     }
-    
-    if (user.password !== password) {
-      return done(null, false, { message: 'Incorrect email or password' });
+    if (!bcrypt.compareSync(password, user.password)) {
+      return done(null, false);
     }
 
     done(null, user);
   }).catch(error => {
     console.log(error);
+
     done(error);
-  })
+  });
 }));
 
 passport.serializeUser((user, done) => {
@@ -62,8 +63,23 @@ passport.deserializeUser((id, done) => {
   });
 });
 
+/**
+ * Express Application Configuration.
+ */
+app.use(bodyParser.json());
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+});
+
 app.use(passport.initialize());
-// app.use(passport.session()); - required test
+app.use((req, res, next) => { // a Delay for the response, nice to have on development mode.
+  setTimeout(() => {
+    next();
+  }, RESPONSE_DELAY);
+});
 
 app.use('/api/users', usersRoutes);
 
