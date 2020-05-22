@@ -7,7 +7,8 @@ const examplesRoutes = require('./routes/examples');
 const app = express();
 
 mongoose.connect(process.env.MONGO_CONNECTION, {
-  useNewUrlParser: true
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 }).then(() => {
   console.log('Connected to Database!');
 }).catch(error => {
