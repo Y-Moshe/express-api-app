@@ -15,19 +15,19 @@ passport.use(new LocalStrategy({
     session: false
 }, (username, password, done) => {
     User.findOne({ email: username }).then(user => {
+        // Mail not exists
         if (!user) {
             return done(null, false, { message: 'Incorrect email or password!' });
         }
+
+        // Incorrect password
         if (!bcrypt.compareSync(password, user.password)) {
             return done(null, false, { message: 'Incorrect email or password!' });
         }
 
+        // onSuccess login
         done(null, user);
-    }).catch(error => {
-        console.log(error);
-
-        done(error);
-    });
+    }).catch(error => done( error ));
 }));
 
 passport.use(new JwtStrategy({
@@ -39,13 +39,13 @@ passport.use(new JwtStrategy({
 
 // Custom Strategy
 /**
- * This Strategy is the opposite of the JwtStrategy, will return UnAuthorized(401) if the token is valid!
+ * This Strategy is the opposite of the JwtStrategy, will fail if the token is valid!
  */
 passport.use('!jwt', new CustomStrategy((req, done) => {
     try {
         const token = req.header('Authorization').split(' ')[1];
         jwt.verify(token, process.env.JWT_SECRET);
-        done(null, false, {message: 'You\'r not allowed to visit this route!'});
+        done(null, false, { message: 'You\'r not allowed to visit this route!' });
     } catch {
         done(null, {});
     }

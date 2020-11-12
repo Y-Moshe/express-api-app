@@ -11,7 +11,7 @@ const app = express();
 /**
  * Mongoose Connection and configuration.
  */
-mongoose.connect(process.env.MONGO_CONNECTION, {
+mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useCreateIndex: true
   }).then(() => {
@@ -31,7 +31,10 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => { // a Delay for the response, nice to have on development mode.
+/**
+ * Delay response from the server.
+ */
+app.use((req, res, next) => {
   setTimeout(() => {
     next();
   }, RESPONSE_DELAY);
@@ -44,5 +47,17 @@ require('./passport');
 app.use(passport.initialize());
 
 app.use('/api/users', usersRoutes);
+
+app.use((err, req, res, next) => {
+  if (err) {
+    console.error(err);
+  
+    return res.status(500).json({
+      message: 'An unknown error has occurred, try again later on.'
+    });
+  } else {
+    next();
+  }
+});
 
 module.exports = app;
