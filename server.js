@@ -1,5 +1,8 @@
 const app = require("./public/app");
+<<<<<<< HEAD
 // const debug = require("debug")("node-angular");
+=======
+>>>>>>> origin/passport-jwt
 const http = require("http");
 
 const normalizePort = val => {
