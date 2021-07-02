@@ -1,52 +1,37 @@
-const passport = require('passport');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const LocalStrategy = require('passport-local').Strategy;
-const passportJwt = require('passport-jwt');
-const JwtStrategy = passportJwt.Strategy;
-const ExtractJwt = passportJwt.ExtractJwt;
-const CustomStrategy = require('passport-custom');
+const passport                 = require('passport'),
+      LocalStrategy            = require('passport-local').Strategy,
+      JwtStrategy              = require('passport-jwt').Strategy,
+      ExtractJwt               = require('passport-jwt').ExtractJwt,
+      bcrypt                   = require('bcryptjs');
 
-const User = require('./models/user');
+const { User } = require('./models');
+const { JWT_SECRET } = require( './config' );
 
 passport.use(new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'password',
-    session: false
-}, (username, password, done) => {
-    User.findOne({ email: username }).then(user => {
-        // Mail not exists
-        if (!user) {
-            return done(null, false, { message: 'Incorrect email or password!' });
-        }
+  usernameField: 'email',
+  passwordField: 'password',
+  session: false
+}, async ( email, password, done ) => {
+  const user = await User.findOne({ email }).lean();
 
-        // Incorrect password
-        if (!bcrypt.compareSync(password, user.password)) {
-            return done(null, false, { message: 'Incorrect email or password!' });
-        }
+  // email was not found
+  if ( !user ) {
+    return done( null, false, { message: `email ${ email } does not exists!` });
+  }
 
-        // onSuccess login
-        done(null, user);
-    }).catch(error => done( error ));
+  // incorrect password
+  const isMatchs = await bcrypt.compare( password, user.password );
+  if ( !isMatchs ) {
+    return done( null, false, { message: 'incorrect password!' });
+  }
+
+  // onSuccess login
+  done( null, user );
 }));
 
 passport.use(new JwtStrategy({
-    secretOrKey: process.env.JWT_SECRET,
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()
-}, (payload, done) => {
-    done(null, payload.user);
-}));
-
-// Custom Strategy
-/**
- * This Strategy is the opposite of the JwtStrategy, will fail if the token is valid!
- */
-passport.use('!jwt', new CustomStrategy((req, done) => {
-    try {
-        const token = req.header('Authorization').split(' ')[1];
-        jwt.verify(token, process.env.JWT_SECRET);
-        done(null, false, { message: 'You\'r not allowed to visit this route!' });
-    } catch {
-        done(null, {});
-    }
+  secretOrKey: JWT_SECRET,
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()
+}, ( payload, done ) => {
+  done( null, payload );
 }));
