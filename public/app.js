@@ -1,28 +1,43 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const express  = require('express'),
+      passport = require('passport'),
+      mongoose = require('mongoose'),
+      cors     = require('cors');
+require('dotenv').config();
 
-const testsRoutes = require('./routes/tests');
+const {
+  MONGO_CONNECTION_STRING,
+  PORT
+} = require('./config');
+const { appVersion } = require('./utils');
+const {
+  AuthRoutes,
+  UsersRoutes,
+  TestRoutes
+} = require('./routes');
 
+const BASE_URI   = `/api/v${ appVersion }`;
 const app = express();
 
-mongoose.connect(process.env.MONGO_CONNECTION, {
+mongoose.connect( MONGO_CONNECTION_STRING, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  useCreateIndex: true
 }).then(() => {
-  console.log('Connected to Database!');
+  console.log( 'Connected to Database!' );
 }).catch(error => {
-  console.error('Could not connect to Database! Error:');
-  console.log(error);
+  console.error( 'Could not connect to Database' );
+  console.error( 'Error: ', error );
 });
 
-app.use(bodyParser.json());
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  next();
-});
+app.use( express.json() );
+app.use( express.urlencoded({ extended: true }) );
+app.use( cors() );
 
-app.use('/api/tests', testsRoutes);
+require( './passport' );
+app.use( passport.initialize() );
 
-module.exports = app;
+app.use( BASE_URI.concat( '/auth' ), AuthRoutes );
+app.use( BASE_URI.concat( '/users' ), UsersRoutes );
+app.use( BASE_URI.concat( '/tests' ), TestRoutes );
+
+app.listen( PORT, () => console.log( `Server(v${ appVersion }) is running at port: ${ PORT }` ));
