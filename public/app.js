@@ -14,6 +14,7 @@ const {
   UsersRoutes,
   TestsRoutes
 } = require('./routes');
+const { errorHandler } = require('./middlewares');
 
 const BASE_URI   = `/api/v${ appVersion }`;
 const app = express();
@@ -36,8 +37,18 @@ app.use( cors() );
 require( './passport' );
 app.use( passport.initialize() );
 
+app.get( '/', ( req, res ) => res.status(200).send('Hello from Node.js server :)') );
+
 app.use( BASE_URI.concat( '/auth' ), AuthRoutes );
 app.use( BASE_URI.concat( '/users' ), UsersRoutes );
 app.use( BASE_URI.concat( '/tests' ), TestsRoutes );
+
+/**
+ * Using a global error handler to catch all types of errors.
+ * And trying to find out which error message to send back to the Response!
+ */
+app.use( errorHandler );
+
+app.get( '/*', ( req, res ) => res.redirect('/') );
 
 app.listen( PORT, () => console.log( `Server(v${ appVersion }) is running at port: ${ PORT }` ));
