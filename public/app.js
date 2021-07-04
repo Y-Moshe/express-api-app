@@ -12,7 +12,7 @@ const { appVersion } = require('./utils');
 const {
   AuthRoutes,
   UsersRoutes,
-  TestRoutes
+  TestsRoutes
 } = require('./routes');
 
 const BASE_URI   = `/api/v${ appVersion }`;
@@ -38,6 +38,6 @@ app.use( passport.initialize() );
 
 app.use( BASE_URI.concat( '/auth' ), AuthRoutes );
 app.use( BASE_URI.concat( '/users' ), UsersRoutes );
-app.use( BASE_URI.concat( '/tests' ), TestRoutes );
+app.use( BASE_URI.concat( '/tests' ), TestsRoutes );
 
 app.listen( PORT, () => console.log( `Server(v${ appVersion }) is running at port: ${ PORT }` ));
