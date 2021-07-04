@@ -1,11 +1,11 @@
-const passport                 = require('passport'),
-      LocalStrategy            = require('passport-local').Strategy,
-      JwtStrategy              = require('passport-jwt').Strategy,
-      ExtractJwt               = require('passport-jwt').ExtractJwt,
-      bcrypt                   = require('bcryptjs');
+const passport      = require('passport'),
+      LocalStrategy = require('passport-local').Strategy,
+      JwtStrategy   = require('passport-jwt').Strategy,
+      ExtractJwt    = require('passport-jwt').ExtractJwt,
+      bcrypt        = require('bcryptjs');
 
 const { User } = require('./models');
-const { JWT_SECRET } = require( './config' );
+const { JWT_SECRET } = require('./config');
 
 passport.use(new LocalStrategy({
   usernameField: 'email',
@@ -24,6 +24,7 @@ passport.use(new LocalStrategy({
   if ( !isMatchs ) {
     return done( null, false, { message: 'incorrect password!' });
   }
+  delete user.password;
 
   // onSuccess login
   done( null, user );
